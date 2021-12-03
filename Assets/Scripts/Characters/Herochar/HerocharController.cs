@@ -1,16 +1,23 @@
-using System;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using System.Collections;
 
-namespace CharacterControllers
+namespace Characters.Herochar
 {
-    public class BaseController : MonoBehaviour
+    public class HerocharController : MonoBehaviour
     {
+        [SerializeField]
         private float _speed = 3.5f;
+        [SerializeField]
         private float _jumpHeight = 5f;
+        [SerializeField]
+        private int _health = 5;
+        [SerializeField]
+        private float _timeImmortality = 1.0f;
+        
         private float _dirX;
         private bool _onFloor;
         private bool _doJump;
+        private bool _isImmortal = false;
 
         private Transform _transform;
         private Rigidbody2D _rb;
@@ -72,6 +79,12 @@ namespace CharacterControllers
                 _onFloor = false;
         }
 
+        private void OnTriggerStay2D(Collider2D other)
+        {
+            if (other.gameObject.layer.Equals(LayerMask.NameToLayer("Traps")))
+                Hit();
+        }
+
         private void Move()
         {
             Vector2 velocity = _rb.velocity;
@@ -82,6 +95,25 @@ namespace CharacterControllers
         {
             _rb.AddForce(new Vector2(0, _jumpHeight), ForceMode2D.Impulse);
             _doJump = false;
+        }
+
+        private void Hit()
+        {
+            if (!_isImmortal)
+            {
+                _health -= 1;
+                if (_health == 0)
+                    Death();
+
+                Debug.Log(_health);
+
+                StartCoroutine(Immortality());
+            }
+        }
+
+        private void Death()
+        {
+            Destroy(gameObject);
         }
 
         private void UpdateAnimationState()
@@ -102,7 +134,16 @@ namespace CharacterControllers
             if (_rb.velocity.y > .1f) state = AnimationStates.Jump;
             else if (_rb.velocity.y < -.1f) state = AnimationStates.Falling;
 
+            if (_isImmortal) state = AnimationStates.Hit;
+
             _animator.SetInteger("AnimationState", (int) state);
         }
+
+        private IEnumerator Immortality()
+        {
+            _isImmortal = true;
+            yield return new WaitForSeconds(_timeImmortality);
+            _isImmortal = false;
+        } 
     }
 }

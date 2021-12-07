@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 using System.Collections;
+using Interaction;
 
 namespace Characters.Herochar
 {
@@ -24,14 +26,14 @@ namespace Characters.Herochar
         private bool _doDash;
         private bool _canDash = true;
         private bool _isImmortal;
-        private bool _lookRight = true;
         private bool _switchesLever = false;
+        private Vector2 _direction = Vector2.right;
 
         private Transform _transform;
         private Rigidbody2D _rb;
         private SpriteRenderer _sprRenderer;
         private Animator _animator;
-        private BoxCollider2D _interactionCollider;
+        private Transform _handForInteractions;
 
         private enum AnimationStates
         {
@@ -56,7 +58,7 @@ namespace Characters.Herochar
             _sprRenderer = GetComponent<SpriteRenderer>();
             _rb = GetComponent<Rigidbody2D>();
             _animator = GetComponent<Animator>();
-            _interactionCollider = _transform.Find("Interaction").GetComponent<BoxCollider2D>();
+            _handForInteractions = transform.Find("Hand").transform;
         }
 
         // Update is called once per frame
@@ -70,7 +72,7 @@ namespace Characters.Herochar
             if (((Input.GetButtonDown("Vertical") && Input.GetAxisRaw("Vertical") > 0) | Input.GetButtonDown("Jump")) && _onFloor)
                 _doJump = true;
 
-            if (Input.GetKey(KeyCode.V))
+            if (Input.GetKey(KeyCode.V) && _onFloor && _dirX == 0.0f)
                 _switchesLever = true;
 
             UpdateAnimationState();
@@ -80,10 +82,13 @@ namespace Characters.Herochar
         {
             Move();
 
+            if (_switchesLever)
+                LeverSwitch();
+
             if (_doDash)
                 Dash();
 
-            if (_doJump && _onFloor)
+            if (_doJump)
                 Jump();
         }
 
@@ -119,17 +124,42 @@ namespace Characters.Herochar
 
         private void Dash()
         {
-            _doDash = false;
             _rb.velocity = Vector2.zero;
+            _rb.AddForce(_direction * _dashPower, ForceMode2D.Impulse);
 
-            Vector2 dirVector = _lookRight ? Vector2.right : Vector2.left;
-            _rb.AddForce(dirVector * _dashPower, ForceMode2D.Impulse);
+            _doDash = false;
             StartCoroutine(DashReload());
         }
 
         private void LeverSwitch()
         {
-            // _switchesLever = false;
+            _rb.velocity = Vector2.zero;
+
+            Vector2 targetPos = _handForInteractions.position;
+            RaycastHit2D hit =
+                Physics2D.Raycast(targetPos, _direction, 0.5f, LayerMask.GetMask("Interaction"));
+
+            if (hit.collider != null)
+            {
+                GameObject interactionObj = hit.collider.gameObject;
+                if (interactionObj.tag.Equals("Lever"))
+                {
+                    Debug.Log(interactionObj.name);
+                    var leverController = interactionObj.GetComponent<InteractionController>();
+                    leverController.CurrentState = InteractionController.InteractionStates.Enable;
+                }
+            }
+
+            _switchesLever = false;
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (_handForInteractions != null)
+            {
+                Vector2 targetPos = _handForInteractions.position;
+                Gizmos.DrawRay(targetPos, _direction);
+            }
         }
 
         private void Hit()
@@ -155,14 +185,14 @@ namespace Characters.Herochar
 
             if (_dirX < 0)
             {
-                _lookRight = false;
-                _sprRenderer.flipX = !_lookRight;
+                _direction = Vector2.left;
+                _transform.localScale = new Vector3(-1, 1);
                 state = AnimationStates.Run;
             }
             else if (_dirX > 0)
             {
-                _lookRight = true;
-                _sprRenderer.flipX = !_lookRight;
+                _direction = Vector2.right;
+                _transform.localScale = new Vector3(1, 1);
                 state = AnimationStates.Run;
             }
 
@@ -171,13 +201,8 @@ namespace Characters.Herochar
 
             if (_isImmortal) state = AnimationStates.Hit;
 
-            if (_switchesLever)
-            {
-                state = AnimationStates.Attack1;
-                _switchesLever = false;
-            }
+            if (_switchesLever) state = AnimationStates.Attack1;
 
-            Debug.Log(state);
             _animator.SetInteger("AnimationState", (int) state);
         }
 

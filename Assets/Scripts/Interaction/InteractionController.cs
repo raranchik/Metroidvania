@@ -11,7 +11,7 @@ namespace Interaction
         private GameObject associatedWith;
 
         private SpriteRenderer _sprRenderer;
-        private PolygonCollider2D _polyCol2d;
+        private BoxCollider2D _boxCol2D;
 
         private InteractionStates _currentState = InteractionStates.Disable;
 
@@ -20,7 +20,7 @@ namespace Interaction
             get => _currentState;
             set
             {
-                _polyCol2d.enabled = false;
+                _boxCol2D.enabled = false;
                 _sprRenderer.sprite = enableSprite;
                 _currentState = value;
             }
@@ -35,7 +35,7 @@ namespace Interaction
         private void Awake()
         {
             _sprRenderer = GetComponent<SpriteRenderer>();
-            _polyCol2d = GetComponent<PolygonCollider2D>();
+            _boxCol2D = GetComponent<BoxCollider2D>();
         }
     }
 }

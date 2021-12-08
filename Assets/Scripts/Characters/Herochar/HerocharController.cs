@@ -127,6 +127,14 @@ namespace Characters.Herochar
             _rb.velocity = Vector2.zero;
             _rb.AddForce(_direction * _dashPower, ForceMode2D.Impulse);
 
+            RaycastHit2D hit = GetRayHitByLayerName("Interaction");
+            if (hit.collider != null)
+            {
+                GameObject interactionObj = hit.collider.gameObject;
+                Vector2 velocity = _rb.velocity;
+                if (interactionObj.tag.Equals("Stone")) _rb.velocity = new Vector2(0.0f, velocity.y);
+            }
+
             _doDash = false;
             StartCoroutine(DashReload());
         }
@@ -135,10 +143,7 @@ namespace Characters.Herochar
         {
             _rb.velocity = Vector2.zero;
 
-            Vector2 targetPos = _handForInteractions.position;
-            RaycastHit2D hit =
-                Physics2D.Raycast(targetPos, _direction, 0.5f, LayerMask.GetMask("Interaction"));
-
+            RaycastHit2D hit = GetRayHitByLayerName("Interaction");
             if (hit.collider != null)
             {
                 GameObject interactionObj = hit.collider.gameObject;
@@ -151,15 +156,6 @@ namespace Characters.Herochar
             }
 
             _switchesLever = false;
-        }
-
-        private void OnDrawGizmos()
-        {
-            if (_handForInteractions != null)
-            {
-                Vector2 targetPos = _handForInteractions.position;
-                Gizmos.DrawRay(targetPos, _direction);
-            }
         }
 
         private void Hit()
@@ -218,6 +214,25 @@ namespace Characters.Herochar
             _canDash = false;
             yield return new WaitForSeconds(_dashTimeReload);
             _canDash = true;
+        }
+
+        private RaycastHit2D GetRayHitByLayerName(string layerName, float distance = 1.1f, bool checkBottom = false)
+        {
+            Vector2 inspectionPointPos = _handForInteractions.position;
+            Vector2 dir = _direction;
+            return Physics2D.BoxCast(inspectionPointPos, Vector2.one, 0f, dir, .1f, LayerMask.GetMask(layerName));
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (_handForInteractions != null)
+            {
+                // Vector2 targetHandPos = _handForInteractions.position;
+                // Gizmos.DrawRay(targetHandPos, _direction);
+                //
+                // Vector2 targetFootPos = new Vector2(targetHandPos.x, transform.position.y);
+                // Gizmos.DrawRay(targetFootPos, _direction);
+            }
         }
     }
 }

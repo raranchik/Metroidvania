@@ -27,6 +27,7 @@ namespace Characters.Herochar
         private bool _canDash = true;
         private bool _isImmortal;
         private bool _switchesLever = false;
+        private bool _isPushingForward = false;
         private Vector2 _direction = Vector2.right;
 
         private Transform _transform;
@@ -34,6 +35,7 @@ namespace Characters.Herochar
         private SpriteRenderer _sprRenderer;
         private Animator _animator;
         private Transform _handForInteractions;
+        private CapsuleCollider2D _capsuleCol;
 
         private enum AnimationStates
         {
@@ -52,17 +54,18 @@ namespace Characters.Herochar
         }
 
         // Start is called before the first frame update
-        void Start()
+        private void Start()
         {
             _transform = GetComponent<Transform>();
             _sprRenderer = GetComponent<SpriteRenderer>();
             _rb = GetComponent<Rigidbody2D>();
+            _capsuleCol = GetComponent<CapsuleCollider2D>();
             _animator = GetComponent<Animator>();
             _handForInteractions = transform.Find("Hand").transform;
         }
 
         // Update is called once per frame
-        void Update()
+        private void Update()
         {
             _dirX = Input.GetAxisRaw("Horizontal");
 
@@ -72,7 +75,7 @@ namespace Characters.Herochar
             if (((Input.GetButtonDown("Vertical") && Input.GetAxisRaw("Vertical") > 0) | Input.GetButtonDown("Jump")) && _onFloor)
                 _doJump = true;
 
-            if (Input.GetKey(KeyCode.V) && _onFloor && _dirX == 0.0f)
+            if (Input.GetKey(KeyCode.V) && _onFloor)
                 _switchesLever = true;
 
             UpdateAnimationState();
@@ -80,28 +83,15 @@ namespace Characters.Herochar
 
         private void FixedUpdate()
         {
-            Move();
+            CheckGround();
 
+            Move();
             if (_switchesLever)
                 LeverSwitch();
-
             if (_doDash)
                 Dash();
-
             if (_doJump)
                 Jump();
-        }
-
-        private void OnCollisionEnter2D(Collision2D other)
-        {
-            if (other.gameObject.layer.Equals(LayerMask.NameToLayer("Floor")))
-                _onFloor = true;
-        }
-
-        private void OnCollisionExit2D(Collision2D other)
-        {
-            if (other.gameObject.layer.Equals(LayerMask.NameToLayer("Floor")))
-                _onFloor = false;
         }
 
         private void OnTriggerStay2D(Collider2D other)
@@ -110,10 +100,61 @@ namespace Characters.Herochar
                 Hit();
         }
 
+        private void OnCollisionStay2D(Collision2D other)
+        {
+            if (other.gameObject.tag.Equals("Stone"))
+            {
+                Bounds bounds = _capsuleCol.bounds;
+                Vector2 rayPoint = bounds.center;
+                Vector2 offsetRayPoint = _direction.Equals(Vector2.right) ? new Vector2(bounds.extents.x, 0f) : new Vector2(-bounds.extents.x, 0f);
+                RaycastHit2D hit = Physics2D.Raycast(rayPoint + offsetRayPoint, _direction, .1f, LayerMask.GetMask("Interaction"));
+                _isPushingForward = hit.collider != null && _dirX != 0f && _onFloor;
+            }
+        }
+
+        private void OnCollisionExit2D(Collision2D other)
+        {
+            if (other.gameObject.tag.Equals("Stone"))
+                _isPushingForward = false;
+        }
+
+        private void CheckGround()
+        {
+            Physics2D.queriesHitTriggers = false;
+            Vector2 position = _transform.position;
+            Vector2 colliderSize = _capsuleCol.size;
+
+            Collider2D[] colliders = Physics2D.OverlapBoxAll(position, new Vector2(colliderSize.x - .2f, .1f), 0f);
+            foreach (Collider2D collider in colliders)
+            {
+                int layer = collider.gameObject.layer;
+                if (GetFloorLayers().Contains(layer))
+                {
+                    Physics2D.queriesHitTriggers = _onFloor = true;
+                    return;
+                }
+            }
+
+            _onFloor = false;
+        }
+
+        private static ArrayList GetFloorLayers()
+        {
+            ArrayList floorLayers = new ArrayList();
+            floorLayers.AddRange(new int[]
+            {
+                LayerMask.NameToLayer("Interaction"),
+                LayerMask.NameToLayer("Floor")
+            });
+
+            return floorLayers;
+        }
+
         private void Move()
         {
+            
             Vector2 velocity = _rb.velocity;
-            _rb.velocity = new Vector2(_dirX * _speed, velocity.y);
+            AdjustVelocity(_dirX * _speed, velocity.y);
         }
 
         private void Jump()
@@ -124,7 +165,7 @@ namespace Characters.Herochar
 
         private void Dash()
         {
-            _rb.velocity = Vector2.zero;
+            AdjustVelocity();
             _rb.AddForce(_direction * _dashPower, ForceMode2D.Impulse);
 
             RaycastHit2D hit = GetRayHitByLayerName("Interaction");
@@ -132,7 +173,7 @@ namespace Characters.Herochar
             {
                 GameObject interactionObj = hit.collider.gameObject;
                 Vector2 velocity = _rb.velocity;
-                if (interactionObj.tag.Equals("Stone")) _rb.velocity = new Vector2(0.0f, velocity.y);
+                if (interactionObj.tag.Equals("Stone")) AdjustVelocity(0f, velocity.y);
             }
 
             _doDash = false;
@@ -141,7 +182,7 @@ namespace Characters.Herochar
 
         private void LeverSwitch()
         {
-            _rb.velocity = Vector2.zero;
+            AdjustVelocity();
 
             RaycastHit2D hit = GetRayHitByLayerName("Interaction");
             if (hit.collider != null)
@@ -199,6 +240,8 @@ namespace Characters.Herochar
 
             if (_switchesLever) state = AnimationStates.Attack1;
 
+            if (_isPushingForward) state = AnimationStates.PushingForward;
+
             _animator.SetInteger("AnimationState", (int) state);
         }
 
@@ -223,16 +266,12 @@ namespace Characters.Herochar
             return Physics2D.BoxCast(inspectionPointPos, Vector2.one, 0f, dir, .1f, LayerMask.GetMask(layerName));
         }
 
-        private void OnDrawGizmos()
+        private void AdjustVelocity(in float x = 0f, in float y = 0f)
         {
-            if (_handForInteractions != null)
-            {
-                // Vector2 targetHandPos = _handForInteractions.position;
-                // Gizmos.DrawRay(targetHandPos, _direction);
-                //
-                // Vector2 targetFootPos = new Vector2(targetHandPos.x, transform.position.y);
-                // Gizmos.DrawRay(targetFootPos, _direction);
-            }
+            Vector2 newVelocity = new Vector2(x, y);
+            _rb.velocity = newVelocity;
         }
+
     }
+
 }

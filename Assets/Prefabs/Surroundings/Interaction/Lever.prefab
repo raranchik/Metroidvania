@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7175505481938024511}
   - component: {fileID: 7175505481938024508}
-  - component: {fileID: 7175505481938024509}
   - component: {fileID: 7175505481938024498}
+  - component: {fileID: 1135238055}
   m_Layer: 9
   m_Name: Lever
   m_TagString: Lever
@@ -84,38 +84,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!60 &7175505481938024509
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7175505481938024499}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: -0.41737545, y: 0.17334288}
-      - {x: -0.43042147, y: 0.030536473}
-      - {x: -0.10446364, y: -0.27386966}
-      - {x: -0.08507788, y: -0.33656374}
-      - {x: 0.15854144, y: -0.3385263}
-      - {x: 0.1573947, y: -0.2742329}
-      - {x: -0.30218387, y: 0.16464555}
 --- !u!114 &7175505481938024498
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -130,3 +98,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enableSprite: {fileID: 21300000, guid: 8e9ddef5cc4ba7f43940f0372472baf5, type: 3}
   associatedWith: {fileID: 0}
+--- !u!61 &1135238055
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7175505481938024499}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: -0.13, y: -0.08}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1, y: 1}
+    newSize: {x: 1, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 0.6, y: 0.5}
+  m_EdgeRadius: 0

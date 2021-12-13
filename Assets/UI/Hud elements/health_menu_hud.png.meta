@@ -5,6 +5,9 @@ TextureImporter:
   - first:
       213: 8463552643324742004
     second: health_menu_hud_0
+  - first:
+      213: -60312989830990277
+    second: health_menu_hud_1
   externalObjects: {}
   serializedVersion: 11
   mipmaps:

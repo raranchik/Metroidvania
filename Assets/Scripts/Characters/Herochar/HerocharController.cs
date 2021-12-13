@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using System.Collections;
 using Interaction;
+using UI;
 
 namespace Characters.Herochar
 {

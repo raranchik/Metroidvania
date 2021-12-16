@@ -49,7 +49,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 16
@@ -114,10 +114,10 @@ TextureImporter:
         serializedVersion: 2
         x: 1
         y: 3
-        width: 70
+        width: 23
         height: 26
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline:
       - - {x: 35, y: -1}
@@ -159,6 +159,27 @@ TextureImporter:
       bones: []
       spriteID: 479803b8944947570800000000000000
       internalID: 8463552643324742004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: health_menu_hud_1
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 15
+        width: 47
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b3638c1c7a9b92ff0800000000000000
+      internalID: -60312989830990277
       vertices: []
       indices: 
       edges: []

@@ -1,11 +1,12 @@
 using System;
+using Control;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 namespace UI
 {
-    public class MainMenu : MonoBehaviour
+    public class UIMainMenu : MonoBehaviour
     {
         [SerializeField]
         private int _countLevels;
@@ -22,6 +23,7 @@ namespace UI
         public static void OnMainMenuLoad()
         {
             SceneManager.LoadScene(MainMenuName);
+            PauseControl.UnpauseGame();
         }
 
         public void OnLevelLoad(int levelIndex)
@@ -29,17 +31,18 @@ namespace UI
             if (levelIndex >= 0 && levelIndex <= _countLevels)
             {
                 SceneManager.LoadScene(string.Concat(_levelNamePrefix, levelIndex));
+                PauseControl.UnpauseGame();
             }
         }
 
         public void OnPauseGame()
         {
-            Time.timeScale = 0f;
+            PauseControl.PauseGame();
         }
 
         public void OnUnpauseGame()
         {
-            Time.timeScale = 1f;
+            PauseControl.UnpauseGame();
         }
 
     }

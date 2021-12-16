@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1375956024300826961}
   - component: {fileID: 5580811906640788609}
   - component: {fileID: -43823321643563422}
-  - component: {fileID: 2513759957643834359}
+  - component: {fileID: 3188081139363586000}
   - component: {fileID: 4958751049849584803}
   - component: {fileID: 2646838030263540788}
   - component: {fileID: 1069677834190982020}
@@ -112,7 +112,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &2513759957643834359
+--- !u!114 &3188081139363586000
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -121,10 +121,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 3363131226527778979}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05cf214f7912a534da00eff4dc664608, type: 3}
+  m_Script: {fileID: 11500000, guid: 9978c8a7e6ed46f3b0a21b1fb3dbbfdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _collider2Ds: []
+  _collider2Ds:
+  - {fileID: 4958751049849584803}
+  - {fileID: 2646838030263540788}
+  - {fileID: 1069677834190982020}
+  - {fileID: 8766796104764658177}
+  - {fileID: 8055202301612736515}
+  - {fileID: 1423870976721573368}
+  - {fileID: 6668791823687390238}
+  - {fileID: 447397344082625996}
+  - {fileID: 7540073649497397200}
 --- !u!60 &4958751049849584803
 PolygonCollider2D:
   m_ObjectHideFlags: 0

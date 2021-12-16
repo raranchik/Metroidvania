@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using System.Collections;
+using Control;
 using Interaction;
 using UI;
 
@@ -13,7 +14,7 @@ namespace Characters.Herochar
         [SerializeField]
         private float _jumpHeight = 5f;
         [SerializeField]
-        private int _health = 5;
+        private float _maxHealth = 5;
         [SerializeField]
         private float _timeImmortality = 1.0f;
         [SerializeField]
@@ -30,6 +31,7 @@ namespace Characters.Herochar
         private bool _switchesLever = false;
         private bool _isPushingForward = false;
         private Vector2 _direction = Vector2.right;
+        private float _currentHealth;
 
         private Transform _transform;
         private Rigidbody2D _rb;
@@ -55,19 +57,29 @@ namespace Characters.Herochar
         }
 
         // Start is called before the first frame update
-        private void Start()
+        private void Awake()
         {
             _transform = GetComponent<Transform>();
             _sprRenderer = GetComponent<SpriteRenderer>();
             _rb = GetComponent<Rigidbody2D>();
             _capsuleCol = GetComponent<CapsuleCollider2D>();
             _animator = GetComponent<Animator>();
+
             _handForInteractions = transform.Find("Hand").transform;
+
+            _currentHealth = _maxHealth;
+        }
+
+        private void Start()
+        {
+            UIHealthBar.Instance.SetMaxHealthValue(_maxHealth);
         }
 
         // Update is called once per frame
         private void Update()
         {
+            if (PauseControl.GameIsPaused()) return;
+
             _dirX = Input.GetAxisRaw("Horizontal");
 
             if (Input.GetKeyDown(KeyCode.LeftShift) && _canDash)
@@ -84,6 +96,8 @@ namespace Characters.Herochar
 
         private void FixedUpdate()
         {
+            if (PauseControl.GameIsPaused()) return;
+
             CheckGround();
 
             Move();
@@ -192,8 +206,8 @@ namespace Characters.Herochar
                 if (interactionObj.tag.Equals("Lever"))
                 {
                     Debug.Log(interactionObj.name);
-                    var leverController = interactionObj.GetComponent<InteractionController>();
-                    leverController.CurrentState = InteractionController.InteractionStates.Enable;
+                    var leverController = interactionObj.GetComponent<LevelerController>();
+                    leverController.CurrentState = InteractionBaseController.InteractionStates.Enable;
                 }
             }
 
@@ -204,11 +218,14 @@ namespace Characters.Herochar
         {
             if (_isImmortal) return;
 
-            _health -= 1;
-            if (_health == 0)
-                Death();
+            _currentHealth -= 1;
+            if (_currentHealth == 0)
+            {
+                // Death();
+            }
+            UIHealthBar.Instance.SetHealthValue(_currentHealth);
 
-            Debug.Log(_health);
+            Debug.Log(_currentHealth);
             StartCoroutine(Immortality());
         }
 

@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7175505481938024511}
   - component: {fileID: 7175505481938024508}
-  - component: {fileID: 7175505481938024498}
   - component: {fileID: 1135238055}
+  - component: {fileID: 1678065936133408134}
   m_Layer: 9
   m_Name: Lever
   m_TagString: Lever
@@ -84,21 +84,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &7175505481938024498
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7175505481938024499}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1b549f172ff06b4580c7921d317434c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _enableSprite: {fileID: 21300000, guid: 8e9ddef5cc4ba7f43940f0372472baf5, type: 3}
-  _associatedWith: {fileID: 0}
-  _hasAnimation: 0
 --- !u!61 &1135238055
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -125,3 +110,17 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.6, y: 0.5}
   m_EdgeRadius: 0
+--- !u!114 &1678065936133408134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7175505481938024499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 037044926e364fc0892113eaab06d69b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _enableSprite: {fileID: 21300000, guid: 8e9ddef5cc4ba7f43940f0372472baf5, type: 3}
+  _associatedWith: {fileID: 0}

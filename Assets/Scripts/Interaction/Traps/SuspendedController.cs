@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Interaction.Traps
 {
-    public class SuspendedController : InteractionBaseController
+    public class SuspendedController : TrapBaseController
     {
         [SerializeField]
         private PolygonCollider2D[] _collider2Ds;

@@ -1,3 +1,4 @@
+using UI;
 using UnityEngine;
 
 namespace Interaction
@@ -25,16 +26,14 @@ namespace Interaction
             _boxCol2D = GetComponent<BoxCollider2D>();
             _animator = GetComponent<Animator>();
         }
-        
+
         private void OnTriggerEnter2D(Collider2D other)
         {
-            // Debug.Log("ewe");
             string triggerObjTag = other.tag;
-            Debug.Log(triggerObjTag);
             if (triggerObjTag.Equals("Player"))
             {
-                Debug.Log("er");
                 CurrentState = InteractionStates.Enable;
+                UIScoreBar.Instance.SetBarValue();
             }
         }
 

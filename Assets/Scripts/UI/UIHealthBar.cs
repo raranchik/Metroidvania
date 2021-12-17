@@ -1,43 +1,32 @@
-using System;
-using TMPro;
-using UnityEngine;
 using UnityEngine.UI;
 
 namespace UI
 {
-    public class UIHealthBar : MonoBehaviour
+    public class UIHealthBar : UIBarBase
     {
-        public static UIHealthBar Instance { get; private set; }
-
-        [SerializeField]
-        private TextMeshProUGUI _healthValueText;
+        public new static UIHealthBar Instance { get; private set; }
 
         private Slider _healthHerochar;
 
-        private void Awake()
+        protected override void Awake()
         {
             Instance = this;
             _healthHerochar = GetComponent<Slider>();
         }
 
-        private void Start()
-        {
-            float maxValue = _healthHerochar.maxValue;
-            SetHealthValue(maxValue);
-        }
-
-        public void SetMaxHealthValue(float maxValue)
+        public void SetBarMaxValue(int maxValue)
         {
             _healthHerochar.maxValue = maxValue;
+            SetBarValue(maxValue);
         }
 
-        public void SetHealthValue(float value)
+        public override void SetBarValue(int value = 0)
         {
             float maxValue = _healthHerochar.maxValue;
             if (value >= 0 && value <= maxValue)
             {
                 _healthHerochar.value = value;
-                _healthValueText.text = value + "/" + maxValue;
+                _barValueText.text = value + "/" + maxValue;
             }
         }
 

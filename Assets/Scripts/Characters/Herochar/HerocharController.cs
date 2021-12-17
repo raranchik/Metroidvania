@@ -14,13 +14,15 @@ namespace Characters.Herochar
         [SerializeField]
         private float _jumpHeight = 5f;
         [SerializeField]
-        private float _maxHealth = 5;
+        private int _maxHealth = 5;
         [SerializeField]
         private float _timeImmortality = 1.0f;
         [SerializeField]
         private float _dashPower = 7f;
         [SerializeField]
         private float _dashTimeReload = 1.0f;
+        [SerializeField]
+        private int _maxCountLife = 3;
         
         private float _dirX;
         private bool _onFloor;
@@ -31,7 +33,8 @@ namespace Characters.Herochar
         private bool _switchesLever = false;
         private bool _isPushingForward = false;
         private Vector2 _direction = Vector2.right;
-        private float _currentHealth;
+        private int _currentHealth;
+        private int _currentCountLife;
 
         private Transform _transform;
         private Rigidbody2D _rb;
@@ -72,7 +75,9 @@ namespace Characters.Herochar
 
         private void Start()
         {
-            UIHealthBar.Instance.SetMaxHealthValue(_maxHealth);
+            UIHealthBar.Instance.SetBarMaxValue(_maxHealth);
+            UILifeBar.Instance.SetBarValue(_maxCountLife);
+            UIScoreBar.Instance.SetInitialValue();
         }
 
         // Update is called once per frame
@@ -100,19 +105,19 @@ namespace Characters.Herochar
 
             CheckGround();
 
-            Move();
+            OnMove();
             if (_switchesLever)
-                LeverSwitch();
+                OnLeverSwitch();
             if (_doDash)
-                Dash();
+                OnDash();
             if (_doJump)
-                Jump();
+                OnJump();
         }
 
         private void OnTriggerStay2D(Collider2D other)
         {
-            if (other.gameObject.layer.Equals(LayerMask.NameToLayer("Traps")))
-                Hit();
+            // if (other.gameObject.layer.Equals(LayerMask.NameToLayer("Traps")))
+            //     OnHit();
         }
 
         private void OnCollisionStay2D(Collision2D other)
@@ -165,20 +170,20 @@ namespace Characters.Herochar
             return floorLayers;
         }
 
-        private void Move()
+        private void OnMove()
         {
             
             Vector2 velocity = _rb.velocity;
             AdjustVelocity(_dirX * _speed, velocity.y);
         }
 
-        private void Jump()
+        private void OnJump()
         {
             _rb.AddForce(new Vector2(0, _jumpHeight), ForceMode2D.Impulse);
             _doJump = false;
         }
 
-        private void Dash()
+        private void OnDash()
         {
             AdjustVelocity();
             _rb.AddForce(_direction * _dashPower, ForceMode2D.Impulse);
@@ -195,7 +200,7 @@ namespace Characters.Herochar
             StartCoroutine(DashReload());
         }
 
-        private void LeverSwitch()
+        private void OnLeverSwitch()
         {
             AdjustVelocity();
 
@@ -214,7 +219,7 @@ namespace Characters.Herochar
             _switchesLever = false;
         }
 
-        private void Hit()
+        public void OnHit()
         {
             if (_isImmortal) return;
 
@@ -223,13 +228,13 @@ namespace Characters.Herochar
             {
                 // Death();
             }
-            UIHealthBar.Instance.SetHealthValue(_currentHealth);
+            UIHealthBar.Instance.SetBarValue(_currentHealth);
 
             Debug.Log(_currentHealth);
             StartCoroutine(Immortality());
         }
 
-        private void Death()
+        private void OnDeath()
         {
             Destroy(gameObject);
         }

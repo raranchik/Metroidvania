@@ -32,9 +32,10 @@ namespace Characters.Herochar
         private bool _isImmortal;
         private bool _switchesLever = false;
         private bool _isPushingForward = false;
-        private Vector2 _direction = Vector2.right;
+        protected bool _isAttack = false;
         private int _currentHealth;
         private int _currentCountLife;
+        private Vector2 _direction = Vector2.right;
 
         private Transform _transform;
         private Rigidbody2D _rb;
@@ -42,6 +43,7 @@ namespace Characters.Herochar
         private Animator _animator;
         private Transform _handForInteractions;
         private CapsuleCollider2D _capsuleCol;
+        private SavePointController _savePoint;
 
         private enum AnimationStates
         {
@@ -71,6 +73,7 @@ namespace Characters.Herochar
             _handForInteractions = transform.Find("Hand").transform;
 
             _currentHealth = _maxHealth;
+            _currentCountLife = _maxCountLife;
         }
 
         private void Start()
@@ -83,18 +86,22 @@ namespace Characters.Herochar
         // Update is called once per frame
         private void Update()
         {
-            if (PauseControl.GameIsPaused()) return;
+            if (PauseControl.GameIsPaused())
+                return;
 
             _dirX = Input.GetAxisRaw("Horizontal");
 
             if (Input.GetKeyDown(KeyCode.LeftShift) && _canDash)
                 _doDash = true;
 
-            if (((Input.GetButtonDown("Vertical") && Input.GetAxisRaw("Vertical") > 0) | Input.GetButtonDown("Jump")) && _onFloor)
+            else if (((Input.GetButtonDown("Vertical") && Input.GetAxisRaw("Vertical") > 0) | Input.GetButtonDown("Jump")) && _onFloor)
                 _doJump = true;
 
-            if (Input.GetKey(KeyCode.V) && _onFloor)
+            else if (Input.GetKey(KeyCode.V) && _onFloor)
                 _switchesLever = true;
+
+            else if (Input.GetKey(KeyCode.C) && _onFloor)
+                _isAttack = true;
 
             UpdateAnimationState();
         }
@@ -112,12 +119,8 @@ namespace Characters.Herochar
                 OnDash();
             if (_doJump)
                 OnJump();
-        }
-
-        private void OnTriggerStay2D(Collider2D other)
-        {
-            // if (other.gameObject.layer.Equals(LayerMask.NameToLayer("Traps")))
-            //     OnHit();
+            if (_isAttack)
+                OnAttack();
         }
 
         private void OnCollisionStay2D(Collision2D other)
@@ -136,6 +139,18 @@ namespace Characters.Herochar
         {
             if (other.gameObject.tag.Equals("Stone"))
                 _isPushingForward = false;
+        }
+
+        private void OnTriggerEnter2D(Collider2D col)
+        {
+            if (col.tag.Equals("Respawn"))
+            {
+                if (_savePoint != null)
+                {
+                    _savePoint.CurrentState = InteractionBaseController.InteractionStates.Disable;
+                }
+                _savePoint = col.GetComponent<SavePointController>();
+            }
         }
 
         private void CheckGround()
@@ -210,7 +225,6 @@ namespace Characters.Herochar
                 GameObject interactionObj = hit.collider.gameObject;
                 if (interactionObj.tag.Equals("Lever"))
                 {
-                    Debug.Log(interactionObj.name);
                     var leverController = interactionObj.GetComponent<LevelerController>();
                     leverController.CurrentState = InteractionBaseController.InteractionStates.Enable;
                 }
@@ -219,22 +233,56 @@ namespace Characters.Herochar
             _switchesLever = false;
         }
 
+        private void OnAttack()
+        {
+            AdjustVelocity();
+
+            RaycastHit2D hit = GetRayHitByLayerName("Interaction");
+            if (hit.collider != null)
+            {
+                GameObject interactionObj = hit.collider.gameObject;
+                if (interactionObj.tag.Equals("Vase"))
+                {
+                    var vaseController = interactionObj.GetComponent<VaseController>();
+                    vaseController.CurrentState = InteractionBaseController.InteractionStates.Enable;
+                }
+            }
+
+            _isAttack = false;
+        }
+
         public void OnHit()
         {
             if (_isImmortal) return;
 
-            _currentHealth -= 1;
-            if (_currentHealth == 0)
-            {
-                // Death();
-            }
+            _currentHealth--;
             UIHealthBar.Instance.SetBarValue(_currentHealth);
+            if (_currentHealth <= 0)
+            {
+                OnDeath();
+                return;
+            }
 
-            Debug.Log(_currentHealth);
             StartCoroutine(Immortality());
         }
 
         private void OnDeath()
+        {
+            if (_currentCountLife > 0)
+            {
+                _currentCountLife--;
+                _currentHealth = _maxHealth;
+                UILifeBar.Instance.SetBarValue(_currentCountLife);
+                UIHealthBar.Instance.SetBarValue(_maxHealth);
+                _savePoint.OnInteractionTriggered();
+            }
+            else
+            {
+                OnGameOver();
+            }
+        }
+
+        private void OnGameOver()
         {
             Destroy(gameObject);
         }
@@ -264,6 +312,8 @@ namespace Characters.Herochar
             if (_switchesLever) state = AnimationStates.Attack1;
 
             if (_isPushingForward) state = AnimationStates.PushingForward;
+
+            if (_isAttack) state = AnimationStates.Attack2Sword;
 
             _animator.SetInteger("AnimationState", (int) state);
         }

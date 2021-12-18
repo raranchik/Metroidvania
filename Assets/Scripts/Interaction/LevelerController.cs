@@ -22,6 +22,8 @@ namespace Interaction
                 {
                     _boxCol2D.enabled = false;
                     _spriteRenderer.sprite = _enableSprite;
+                    _associatedWith.CurrentState = InteractionStates.Enable;
+
                     _currentState = value;
                 }
             }

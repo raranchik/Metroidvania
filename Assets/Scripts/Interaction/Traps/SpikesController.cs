@@ -4,4 +4,5 @@ namespace Interaction.Traps
     {
         public override InteractionStates CurrentState { get; set; }
     }
+
 }

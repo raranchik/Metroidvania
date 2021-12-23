@@ -120,12 +120,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ff5c0add2fc6e449ac868244b6a8b5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DeathEvent:
+    m_PersistentCalls:
+      m_Calls: []
   _speed: 3.5
   _jumpHeight: 5
   _maxHealth: 5
   _timeImmortality: 1
   _dashPower: 60
   _dashTimeReload: 1
+  _maxCountLife: 3
 --- !u!95 &3323553816448624162
 Animator:
   serializedVersion: 3

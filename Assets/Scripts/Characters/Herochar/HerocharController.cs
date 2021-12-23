@@ -1,14 +1,18 @@
-using System;
 using UnityEngine;
 using System.Collections;
 using Control;
 using Interaction;
+using Interaction.Checkpoint;
 using UI;
+using UnityEngine.Events;
 
 namespace Characters.Herochar
 {
     public class HerocharController : MonoBehaviour
     {
+        [SerializeField]
+        public UnityEvent DeathEvent;
+
         [SerializeField]
         private float _speed = 3.5f;
         [SerializeField]
@@ -23,7 +27,7 @@ namespace Characters.Herochar
         private float _dashTimeReload = 1.0f;
         [SerializeField]
         private int _maxCountLife = 3;
-        
+
         private float _dirX;
         private bool _onFloor;
         private bool _doJump;
@@ -32,7 +36,7 @@ namespace Characters.Herochar
         private bool _isImmortal;
         private bool _switchesLever = false;
         private bool _isPushingForward = false;
-        protected bool _isAttack = false;
+        private bool _isAttack = false;
         private int _currentHealth;
         private int _currentCountLife;
         private Vector2 _direction = Vector2.right;
@@ -43,7 +47,6 @@ namespace Characters.Herochar
         private Animator _animator;
         private Transform _handForInteractions;
         private CapsuleCollider2D _capsuleCol;
-        private SavePointController _savePoint;
 
         private enum AnimationStates
         {
@@ -61,7 +64,6 @@ namespace Characters.Herochar
             Dash = 11
         }
 
-        // Start is called before the first frame update
         private void Awake()
         {
             _transform = GetComponent<Transform>();
@@ -83,7 +85,6 @@ namespace Characters.Herochar
             UIScoreBar.Instance.SetInitialValue();
         }
 
-        // Update is called once per frame
         private void Update()
         {
             if (PauseControl.GameIsPaused())
@@ -139,18 +140,6 @@ namespace Characters.Herochar
         {
             if (other.gameObject.tag.Equals("Stone"))
                 _isPushingForward = false;
-        }
-
-        private void OnTriggerEnter2D(Collider2D col)
-        {
-            if (col.tag.Equals("Respawn"))
-            {
-                if (_savePoint != null)
-                {
-                    _savePoint.CurrentState = InteractionBaseController.InteractionStates.Disable;
-                }
-                _savePoint = col.GetComponent<SavePointController>();
-            }
         }
 
         private void CheckGround()
@@ -274,7 +263,7 @@ namespace Characters.Herochar
                 _currentHealth = _maxHealth;
                 UILifeBar.Instance.SetBarValue(_currentCountLife);
                 UIHealthBar.Instance.SetBarValue(_maxHealth);
-                _savePoint.OnInteractionTriggered();
+                DeathEvent.Invoke();
             }
             else
             {

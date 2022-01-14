@@ -1,4 +1,3 @@
-using System;
 using Characters.Herochar;
 using UnityEngine;
 
@@ -16,6 +15,7 @@ namespace Interaction.Checkpoint
             GameObject herocharObj = Instantiate(_herocharPrefab, _transform.position, _herocharPrefab.transform.rotation);
             _herochar = herocharObj.GetComponent<HerocharController>();
             _herochar.DeathEvent.AddListener(OnInteractionTriggered);
+            _herochar.IsRespawn = true;
         }
 
     }

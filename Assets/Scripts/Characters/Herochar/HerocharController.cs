@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections;
 using Control;
 using Interaction;
-using Interaction.Checkpoint;
 using UI;
 using UnityEngine.Events;
 
@@ -27,6 +26,8 @@ namespace Characters.Herochar
         private float _dashTimeReload = 1.0f;
         [SerializeField]
         private int _maxCountLife = 3;
+        [SerializeField]
+        private Transform _handForInteractions;
 
         private float _dirX;
         private bool _onFloor;
@@ -37,15 +38,16 @@ namespace Characters.Herochar
         private bool _switchesLever = false;
         private bool _isPushingForward = false;
         private bool _isAttack = false;
+        private bool _isDeath = false;
+        private bool _isRespawn = false;
         private int _currentHealth;
         private int _currentCountLife;
+
         private Vector2 _direction = Vector2.right;
 
         private Transform _transform;
         private Rigidbody2D _rb;
-        private SpriteRenderer _sprRenderer;
         private Animator _animator;
-        private Transform _handForInteractions;
         private CapsuleCollider2D _capsuleCol;
 
         private enum AnimationStates
@@ -64,15 +66,32 @@ namespace Characters.Herochar
             Dash = 11
         }
 
+        public bool IsDeath
+        {
+            get => _isDeath;
+            set
+            {
+                _isDeath = value;
+                _isRespawn = false;
+            }
+        }
+
+        public bool IsRespawn
+        {
+            get => _isRespawn;
+            set
+            {
+                _isRespawn = value;
+                _isDeath = false;
+            }
+        }
+
         private void Awake()
         {
             _transform = GetComponent<Transform>();
-            _sprRenderer = GetComponent<SpriteRenderer>();
             _rb = GetComponent<Rigidbody2D>();
             _capsuleCol = GetComponent<CapsuleCollider2D>();
             _animator = GetComponent<Animator>();
-
-            _handForInteractions = transform.Find("Hand").transform;
 
             _currentHealth = _maxHealth;
             _currentCountLife = _maxCountLife;
@@ -90,38 +109,19 @@ namespace Characters.Herochar
             if (PauseControl.GameIsPaused())
                 return;
 
-            _dirX = Input.GetAxisRaw("Horizontal");
-
-            if (Input.GetKeyDown(KeyCode.LeftShift) && _canDash)
-                _doDash = true;
-
-            else if (((Input.GetButtonDown("Vertical") && Input.GetAxisRaw("Vertical") > 0) | Input.GetButtonDown("Jump")) && _onFloor)
-                _doJump = true;
-
-            else if (Input.GetKey(KeyCode.V) && _onFloor)
-                _switchesLever = true;
-
-            else if (Input.GetKey(KeyCode.C) && _onFloor)
-                _isAttack = true;
+            ReadingActions();
 
             UpdateAnimationState();
         }
 
         private void FixedUpdate()
         {
-            if (PauseControl.GameIsPaused()) return;
+            if (PauseControl.GameIsPaused())
+                return;
 
             CheckGround();
 
-            OnMove();
-            if (_switchesLever)
-                OnLeverSwitch();
-            if (_doDash)
-                OnDash();
-            if (_doJump)
-                OnJump();
-            if (_isAttack)
-                OnAttack();
+            TakeActions();
         }
 
         private void OnCollisionStay2D(Collision2D other)
@@ -142,17 +142,76 @@ namespace Characters.Herochar
                 _isPushingForward = false;
         }
 
+        private void ReadingActions()
+        {
+            if (_isDeath)
+                return;
+
+            _dirX = Input.GetAxisRaw("Horizontal");
+
+            if (Input.GetKeyDown(KeyCode.LeftShift) && _canDash)
+                _doDash = true;
+
+            else if (((Input.GetButtonDown("Vertical") && Input.GetAxisRaw("Vertical") > 0) | Input.GetButtonDown("Jump")) && _onFloor)
+                _doJump = true;
+
+            else if (Input.GetKey(KeyCode.V) && _onFloor)
+                _switchesLever = true;
+
+            else if (Input.GetKey(KeyCode.C) && _onFloor)
+                _isAttack = true;
+        }
+
+        private void TakeActions()
+        {
+            if (_isDeath)
+            {
+                AdjustVelocity();
+                return;
+            }
+
+            OnMove();
+
+            if (_switchesLever)
+                OnLeverSwitch();
+
+            if (_doDash)
+                OnDash();
+
+            if (_doJump)
+                OnJump();
+
+            if (_isAttack)
+                OnAttack();
+        }
+
+        public void OnHit()
+        {
+            if (_isImmortal || _isDeath) return;
+
+            _currentHealth--;
+            UIHealthBar.Instance.SetBarValue(_currentHealth);
+            if (_currentHealth <= 0)
+            {
+                OnDeath();
+                return;
+            }
+
+            StartCoroutine(Immortality());
+        }
+
         private void CheckGround()
         {
             Physics2D.queriesHitTriggers = false;
             Vector2 position = _transform.position;
             Vector2 colliderSize = _capsuleCol.size;
 
-            Collider2D[] colliders = Physics2D.OverlapBoxAll(position, new Vector2(colliderSize.x - .2f, .1f), 0f);
+            Collider2D[] colliders = Physics2D.OverlapBoxAll(position, new Vector2(colliderSize.x - .5f, .05f), 0f);
+            ArrayList floorLayers = GetFloorLayers();
             foreach (Collider2D collider in colliders)
             {
                 int layer = collider.gameObject.layer;
-                if (GetFloorLayers().Contains(layer))
+                if (floorLayers.Contains(layer))
                 {
                     Physics2D.queriesHitTriggers = _onFloor = true;
                     return;
@@ -240,27 +299,13 @@ namespace Characters.Herochar
             _isAttack = false;
         }
 
-        public void OnHit()
-        {
-            if (_isImmortal) return;
-
-            _currentHealth--;
-            UIHealthBar.Instance.SetBarValue(_currentHealth);
-            if (_currentHealth <= 0)
-            {
-                OnDeath();
-                return;
-            }
-
-            StartCoroutine(Immortality());
-        }
-
         private void OnDeath()
         {
             if (_currentCountLife > 0)
             {
                 _currentCountLife--;
                 _currentHealth = _maxHealth;
+                IsDeath = true;
                 UILifeBar.Instance.SetBarValue(_currentCountLife);
                 UIHealthBar.Instance.SetBarValue(_maxHealth);
                 DeathEvent.Invoke();
@@ -273,12 +318,12 @@ namespace Characters.Herochar
 
         private void OnGameOver()
         {
-            Destroy(gameObject);
+            Debug.Log("GameOver");
         }
 
-        private void UpdateAnimationState()
+        private void UpdateAnimationState(AnimationStates defaultState = AnimationStates.Idle)
         {
-            AnimationStates state = AnimationStates.Idle;
+            AnimationStates state = defaultState;
 
             if (_dirX < 0)
             {
@@ -304,7 +349,22 @@ namespace Characters.Herochar
 
             if (_isAttack) state = AnimationStates.Attack2Sword;
 
+            if (_isDeath || _isRespawn) state = AnimationStates.Death;
+
             _animator.SetInteger("AnimationState", (int) state);
+        }
+
+        private RaycastHit2D GetRayHitByLayerName(string layerName, float distance = .1f)
+        {
+            Vector2 inspectionPointPos = _handForInteractions.position;
+            Vector2 dir = _direction;
+            return Physics2D.BoxCast(inspectionPointPos, Vector2.one, 0f, dir, distance, LayerMask.GetMask(layerName));
+        }
+
+        private void AdjustVelocity(in float x = 0f, in float y = 0f)
+        {
+            Vector2 newVelocity = new Vector2(x, y);
+            _rb.velocity = newVelocity;
         }
 
         private IEnumerator Immortality()
@@ -319,19 +379,6 @@ namespace Characters.Herochar
             _canDash = false;
             yield return new WaitForSeconds(_dashTimeReload);
             _canDash = true;
-        }
-
-        private RaycastHit2D GetRayHitByLayerName(string layerName, float distance = 1.1f, bool checkBottom = false)
-        {
-            Vector2 inspectionPointPos = _handForInteractions.position;
-            Vector2 dir = _direction;
-            return Physics2D.BoxCast(inspectionPointPos, Vector2.one, 0f, dir, .1f, LayerMask.GetMask(layerName));
-        }
-
-        private void AdjustVelocity(in float x = 0f, in float y = 0f)
-        {
-            Vector2 newVelocity = new Vector2(x, y);
-            _rb.velocity = newVelocity;
         }
 
     }

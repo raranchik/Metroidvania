@@ -125,11 +125,12 @@ MonoBehaviour:
       m_Calls: []
   _speed: 3.5
   _jumpHeight: 5
-  _maxHealth: 5
+  _maxHealth: 3
   _timeImmortality: 1
   _dashPower: 60
   _dashTimeReload: 1
   _maxCountLife: 3
+  _handForInteractions: {fileID: 5993728163420987994}
 --- !u!95 &3323553816448624162
 Animator:
   serializedVersion: 3

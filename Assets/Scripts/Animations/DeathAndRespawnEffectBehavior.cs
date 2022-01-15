@@ -3,18 +3,14 @@ using UnityEngine;
 
 namespace Animations
 {
-    public class RespawnBehavior : StateMachineBehaviour
+    public class DeathAndRespawnEffectBehavior : StateMachineBehaviour
     {
+        public HerocharController heroController;
+
         // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
-        override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
-        {
-            GameObject gameObject = animator.gameObject;
-            Rigidbody2D rb = gameObject.GetComponent<Rigidbody2D>();
-            CapsuleCollider2D col = gameObject.GetComponent<CapsuleCollider2D>();
-            col.enabled = false;
-            rb.isKinematic = true;
-            rb.constraints = RigidbodyConstraints2D.FreezeAll;
-        }
+        // override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+        // {
+        // }
 
         // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
         // override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
@@ -25,16 +21,13 @@ namespace Animations
         // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
         override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
         {
-            GameObject gameObject = animator.gameObject;
-
-            HerocharController heroController = gameObject.GetComponent<HerocharController>();
-            heroController.IsDeath = heroController.IsRespawn = false;
-
-            Rigidbody2D rb = gameObject.GetComponent<Rigidbody2D>();
-            CapsuleCollider2D col = gameObject.GetComponent<CapsuleCollider2D>();
-            col.enabled = true;
-            rb.isKinematic = false;
-            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            animator.gameObject.SetActive(false);
+            heroController.gameObject.SetActive(true);
+            if (heroController.IsDeath)
+            {
+                heroController.IsDeath = false;
+                heroController.DeathEvent.Invoke();
+            }
         }
 
         // OnStateMove is called right after Animator.OnAnimatorMove()

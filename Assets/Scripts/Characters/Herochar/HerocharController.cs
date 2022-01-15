@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using Animations;
 using Control;
 using Interaction;
 using UI;
@@ -28,6 +29,8 @@ namespace Characters.Herochar
         private int _maxCountLife = 3;
         [SerializeField]
         private Transform _handForInteractions;
+        [SerializeField]
+        private GameObject _deathAndRespawnEffect;
 
         private float _dirX;
         private bool _onFloor;
@@ -38,8 +41,6 @@ namespace Characters.Herochar
         private bool _switchesLever = false;
         private bool _isPushingForward = false;
         private bool _isAttack = false;
-        private bool _isDeath = false;
-        private bool _isRespawn = false;
         private int _currentHealth;
         private int _currentCountLife;
 
@@ -49,6 +50,8 @@ namespace Characters.Herochar
         private Rigidbody2D _rb;
         private Animator _animator;
         private CapsuleCollider2D _capsuleCol;
+
+        public bool IsDeath { get; set; }
 
         private enum AnimationStates
         {
@@ -66,26 +69,6 @@ namespace Characters.Herochar
             Dash = 11
         }
 
-        public bool IsDeath
-        {
-            get => _isDeath;
-            set
-            {
-                _isDeath = value;
-                _isRespawn = false;
-            }
-        }
-
-        public bool IsRespawn
-        {
-            get => _isRespawn;
-            set
-            {
-                _isRespawn = value;
-                _isDeath = false;
-            }
-        }
-
         private void Awake()
         {
             _transform = GetComponent<Transform>();
@@ -95,6 +78,8 @@ namespace Characters.Herochar
 
             _currentHealth = _maxHealth;
             _currentCountLife = _maxCountLife;
+
+            _deathAndRespawnEffect = Instantiate(_deathAndRespawnEffect);
         }
 
         private void Start()
@@ -144,7 +129,7 @@ namespace Characters.Herochar
 
         private void ReadingActions()
         {
-            if (_isDeath)
+            if (IsDeath)
                 return;
 
             _dirX = Input.GetAxisRaw("Horizontal");
@@ -164,7 +149,7 @@ namespace Characters.Herochar
 
         private void TakeActions()
         {
-            if (_isDeath)
+            if (IsDeath)
             {
                 AdjustVelocity();
                 return;
@@ -187,7 +172,7 @@ namespace Characters.Herochar
 
         public void OnHit()
         {
-            if (_isImmortal || _isDeath) return;
+            if (_isImmortal || IsDeath) return;
 
             _currentHealth--;
             UIHealthBar.Instance.SetBarValue(_currentHealth);
@@ -198,6 +183,14 @@ namespace Characters.Herochar
             }
 
             StartCoroutine(Immortality());
+        }
+
+        public void ReproduceDeathAndRespawnEffect()
+        {
+            gameObject.SetActive(false);
+            _deathAndRespawnEffect.transform.position = _transform.position;
+            _deathAndRespawnEffect.SetActive(true);
+            _deathAndRespawnEffect.GetComponent<Animator>().GetBehaviour<DeathAndRespawnEffectBehavior>().heroController = this;
         }
 
         private void CheckGround()
@@ -305,10 +298,10 @@ namespace Characters.Herochar
             {
                 _currentCountLife--;
                 _currentHealth = _maxHealth;
-                IsDeath = true;
                 UILifeBar.Instance.SetBarValue(_currentCountLife);
                 UIHealthBar.Instance.SetBarValue(_maxHealth);
-                DeathEvent.Invoke();
+                IsDeath = true;
+                ReproduceDeathAndRespawnEffect();
             }
             else
             {
@@ -348,8 +341,6 @@ namespace Characters.Herochar
             if (_isPushingForward) state = AnimationStates.PushingForward;
 
             if (_isAttack) state = AnimationStates.Attack2Sword;
-
-            if (_isDeath || _isRespawn) state = AnimationStates.Death;
 
             _animator.SetInteger("AnimationState", (int) state);
         }

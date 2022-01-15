@@ -17,7 +17,7 @@ namespace Interaction.Checkpoint
         {
             Vector2 savePointPos = _transform.position;
             _herochar.transform.position = savePointPos;
-            _herochar.IsRespawn = true;
+            _herochar.ReproduceDeathAndRespawnEffect();
         }
 
     }

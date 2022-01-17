@@ -34,10 +34,10 @@ namespace Characters.Herochar
 
         private float _dirX;
         private bool _onFloor;
-        private bool _doJump;
-        private bool _doDash;
+        private bool _doJump = false;
+        private bool _doDash = false;
         private bool _canDash = true;
-        private bool _isImmortal;
+        private bool _isImmortal = false;
         private bool _switchesLever = false;
         private bool _isPushingForward = false;
         private bool _isAttack = false;
@@ -296,6 +296,7 @@ namespace Characters.Herochar
         {
             if (_currentCountLife > 0)
             {
+                SetDefaultActionsValue();
                 _currentCountLife--;
                 _currentHealth = _maxHealth;
                 UILifeBar.Instance.SetBarValue(_currentCountLife);
@@ -309,9 +310,20 @@ namespace Characters.Herochar
             }
         }
 
+        private void SetDefaultActionsValue()
+        {
+            _doJump = false;
+            _doDash = false;
+            _canDash = true;
+            _isImmortal = false;
+            _switchesLever = false; 
+            _isPushingForward = false;
+            _isAttack = false;
+        }
+
         private void OnGameOver()
         {
-            Debug.Log("GameOver");
+            GameControl.Instance.gameEndEvent.Invoke("Loss");
         }
 
         private void UpdateAnimationState(AnimationStates defaultState = AnimationStates.Idle)

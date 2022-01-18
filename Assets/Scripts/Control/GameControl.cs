@@ -15,6 +15,9 @@ namespace Control
 
     sealed class GameControl: MonoBehaviour
     {
+        private const string SceneNamePrefixLevel = "Level_";
+        private const string SceneNameMainMenu = "MainMenu";
+
         [SerializeField]
         private GameObject _gameEndCanvas;
 
@@ -28,13 +31,13 @@ namespace Control
 
         private void Awake ()
         {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else if(Instance == this)
+            if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
+            }
+            else
+            {
+                Instance = this;
             }
 
             GameTime = 0f;
@@ -50,33 +53,59 @@ namespace Control
             TimerRun();
         }
 
+        public static bool GameIsPaused()
+        {
+            return Time.timeScale == 0f;
+        }
+
+        public void PauseGame()
+        {
+            _gameIsRun = false;
+            Time.timeScale = 0f;
+        }
+
+        public void UnpauseGame()
+        {
+            _gameIsRun = true;
+            Time.timeScale = 1f;
+        }
+
         public void LoadLevel(int level)
         {
-            PauseControl.UnpauseGame();
-
             CurrentLevel = level;
-            string levelName = "Level_" + level;
+            string levelName = SceneNamePrefixLevel + level;
             if (Application.CanStreamedLevelBeLoaded(levelName))
             {
                 GameTime = 0f;
                 _gameIsRun = true;
+                UnpauseGame();
                 SceneManager.LoadScene(levelName);
             }
         }
 
         public void LoadMainMenu()
         {
-            if (Application.CanStreamedLevelBeLoaded("MainMenu"))
+            if (Application.CanStreamedLevelBeLoaded(SceneNameMainMenu))
             {
                 GameTime = 0f;
                 _gameIsRun = false;
+                UnpauseGame();
                 SceneManager.LoadScene("MainMenu");
             }
         }
 
+        public void CloseGame()
+        {
+            #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+            #else
+                Application.Quit();
+            #endif
+        }
+
         private void OnGameEnd(string gameStatus)
         {
-            PauseControl.PauseGame();
+            PauseGame();
             _gameIsRun = false;
 
             GameObject gameEndCanvas = Instantiate(_gameEndCanvas);

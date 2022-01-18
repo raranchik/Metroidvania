@@ -91,7 +91,7 @@ namespace Characters.Herochar
 
         private void Update()
         {
-            if (PauseControl.GameIsPaused())
+            if (GameControl.GameIsPaused())
                 return;
 
             ReadingActions();
@@ -101,7 +101,7 @@ namespace Characters.Herochar
 
         private void FixedUpdate()
         {
-            if (PauseControl.GameIsPaused())
+            if (GameControl.GameIsPaused())
                 return;
 
             CheckGround();

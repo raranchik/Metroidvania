@@ -4,10 +4,15 @@ namespace Interaction.Traps
 {
     public class SuspendedController : TrapBaseController
     {
-        [SerializeField]
-        private PolygonCollider2D[] _collider2Ds;
+        public override InteractionStates CurrentState { get; set; }
 
+        private PolygonCollider2D[] _collider2Ds;
         private int _currеntColliderNum;
+
+        private void Awake()
+        {
+            _collider2Ds = GetComponents<PolygonCollider2D>();
+        }
 
         private void SetColliderForAnimation(int numCollider = 0)
         {
@@ -15,8 +20,6 @@ namespace Interaction.Traps
             _currеntColliderNum = numCollider;
             _collider2Ds[_currеntColliderNum].enabled = true;
         }
-
-        public override InteractionStates CurrentState { get; set; }
 
     }
 

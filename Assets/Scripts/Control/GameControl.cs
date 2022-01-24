@@ -22,30 +22,25 @@ namespace Control
         private GameObject _gameEndCanvas;
 
         public static GameControl Instance { get; private set; }
-        public static int CurrentLevel { get; private set; }
+        public static string CurrentLevel { get; private set; } = SceneNameMainMenu;
         public static float GameTime { get; private set; }
 
-        public GameEndEvent gameEndEvent;
+        public GameEndEvent gameEndEvent = new GameEndEvent();
 
         private bool _gameIsRun = false;
 
         private void Awake ()
         {
-            if (Instance != null && Instance != this)
+            if (Instance == null)
             {
-                Destroy(gameObject);
+                DontDestroyOnLoad(gameObject);
+                Instance = this;
+                Instance.gameEndEvent.AddListener(OnGameEnd);
             }
             else
             {
-                Instance = this;
+                Destroy(gameObject);
             }
-
-            GameTime = 0f;
-            _gameIsRun = true;
-            gameEndEvent ??= new GameEndEvent();
-            gameEndEvent.AddListener(OnGameEnd);
-
-            DontDestroyOnLoad(gameObject);
         }
 
         private void Update()
@@ -60,24 +55,24 @@ namespace Control
 
         public void PauseGame()
         {
-            _gameIsRun = false;
+            Instance._gameIsRun = false;
             Time.timeScale = 0f;
         }
 
         public void UnpauseGame()
         {
-            _gameIsRun = true;
+            Instance._gameIsRun = true;
             Time.timeScale = 1f;
         }
 
         public void LoadLevel(int level)
         {
-            CurrentLevel = level;
             string levelName = SceneNamePrefixLevel + level;
+            CurrentLevel = levelName;
             if (Application.CanStreamedLevelBeLoaded(levelName))
             {
                 GameTime = 0f;
-                _gameIsRun = true;
+                Instance._gameIsRun = true;
                 UnpauseGame();
                 SceneManager.LoadScene(levelName);
             }
@@ -87,8 +82,9 @@ namespace Control
         {
             if (Application.CanStreamedLevelBeLoaded(SceneNameMainMenu))
             {
+                CurrentLevel = SceneNameMainMenu;
                 GameTime = 0f;
-                _gameIsRun = false;
+                Instance._gameIsRun = false;
                 UnpauseGame();
                 SceneManager.LoadScene("MainMenu");
             }
@@ -106,7 +102,7 @@ namespace Control
         private void OnGameEnd(string gameStatus)
         {
             PauseGame();
-            _gameIsRun = false;
+            Instance._gameIsRun = false;
 
             GameObject gameEndCanvas = Instantiate(_gameEndCanvas);
             Canvas canvas = gameEndCanvas.GetComponent<Canvas>();
@@ -155,7 +151,7 @@ namespace Control
 
         private void TimerRun()
         {
-            if (_gameIsRun)
+            if (Instance._gameIsRun && !GameIsPaused())
             {
                 GameTime += Time.deltaTime;
             }

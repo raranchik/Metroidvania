@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace Interaction
@@ -13,11 +12,16 @@ namespace Interaction
             get => _currentState;
             set
             {
+                _currentState = value;
                 if (value is InteractionStates.Enable)
                 {
                     _collider.enabled = false;
                     _animator.SetInteger("AnimationState", (int) InteractionStates.Enable);
-                    _currentState = value;
+                }
+                else if (value is InteractionStates.Disable)
+                {
+                    _collider.enabled = true;
+                    _animator.SetInteger("AnimationState", (int) InteractionStates.Disable);
                 }
             }
         }

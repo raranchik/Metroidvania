@@ -39,6 +39,7 @@ namespace Characters.Herochar
         private bool _canDash = true;
         private bool _isImmortal = false;
         private bool _switchesLever = false;
+        private bool _canSwitchLever = true;
         private bool _isPushingForward = false;
         private bool _isAttack = false;
         private int _currentHealth;
@@ -65,8 +66,6 @@ namespace Characters.Herochar
             PushingForward = 7,
             Attack1 = 8,
             Attack2Sword = 9,
-            Death = 10,
-            Dash = 11
         }
 
         private void Awake()
@@ -111,7 +110,7 @@ namespace Characters.Herochar
 
         private void OnCollisionStay2D(Collision2D other)
         {
-            if (other.gameObject.tag.Equals("Stone"))
+            if (other.gameObject.name.Equals("Stone"))
             {
                 Bounds bounds = _capsuleCol.bounds;
                 Vector2 rayPoint = bounds.center;
@@ -123,7 +122,7 @@ namespace Characters.Herochar
 
         private void OnCollisionExit2D(Collision2D other)
         {
-            if (other.gameObject.tag.Equals("Stone"))
+            if (other.gameObject.name.Equals("Stone"))
                 _isPushingForward = false;
         }
 
@@ -140,7 +139,7 @@ namespace Characters.Herochar
             else if (((Input.GetButtonDown("Vertical") && Input.GetAxisRaw("Vertical") > 0) | Input.GetButtonDown("Jump")) && _onFloor)
                 _doJump = true;
 
-            else if (Input.GetKey(KeyCode.V) && _onFloor)
+            else if (Input.GetKey(KeyCode.V) && _onFloor && _canSwitchLever)
                 _switchesLever = true;
 
             else if (Input.GetKey(KeyCode.C) && _onFloor)
@@ -248,8 +247,9 @@ namespace Characters.Herochar
             if (hit.collider != null)
             {
                 GameObject interactionObj = hit.collider.gameObject;
+                string objName = interactionObj.name;
                 Vector2 velocity = _rb.velocity;
-                if (interactionObj.tag.Equals("Stone")) AdjustVelocity(0f, velocity.y);
+                if (objName.Equals("Stone")) AdjustVelocity(0f, velocity.y);
             }
 
             _doDash = false;
@@ -264,14 +264,24 @@ namespace Characters.Herochar
             if (hit.collider != null)
             {
                 GameObject interactionObj = hit.collider.gameObject;
-                if (interactionObj.tag.Equals("Lever"))
+                string objName = interactionObj.name;
+                if (objName.Equals("Lever"))
                 {
-                    var leverController = interactionObj.GetComponent<LevelerController>();
-                    leverController.CurrentState = InteractionBaseController.InteractionStates.Enable;
+                    LevelerController leverController = interactionObj.GetComponent<LevelerController>();
+                    InteractionBaseController.InteractionStates leverState = leverController.CurrentState;
+
+                    InteractionBaseController.InteractionStates newState =
+                        leverState is InteractionBaseController.InteractionStates.Disable
+                            ? InteractionBaseController.InteractionStates.Enable
+                            : InteractionBaseController.InteractionStates.Disable;
+
+                    leverController.CurrentState = newState;
+                    Debug.Log("1");
                 }
             }
 
             _switchesLever = false;
+            StartCoroutine(LeverSwitchReload());
         }
 
         private void OnAttack()
@@ -282,7 +292,8 @@ namespace Characters.Herochar
             if (hit.collider != null)
             {
                 GameObject interactionObj = hit.collider.gameObject;
-                if (interactionObj.tag.Equals("Vase"))
+                string objName = interactionObj.name;
+                if (objName.Equals("Vase"))
                 {
                     var vaseController = interactionObj.GetComponent<VaseController>();
                     vaseController.CurrentState = InteractionBaseController.InteractionStates.Enable;
@@ -315,6 +326,7 @@ namespace Characters.Herochar
             _doJump = false;
             _doDash = false;
             _canDash = true;
+            _canSwitchLever = true;
             _isImmortal = false;
             _switchesLever = false; 
             _isPushingForward = false;
@@ -382,6 +394,13 @@ namespace Characters.Herochar
             _canDash = false;
             yield return new WaitForSeconds(_dashTimeReload);
             _canDash = true;
+        }
+
+        private IEnumerator LeverSwitchReload()
+        {
+            _canSwitchLever = false;
+            yield return new WaitForSeconds(1f);
+            _canSwitchLever = true;
         }
 
     }

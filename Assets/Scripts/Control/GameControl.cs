@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UI;
 using UnityEngine;
@@ -13,21 +14,24 @@ namespace Control
     {
     }
 
-    sealed class GameControl: MonoBehaviour
+    sealed class GameControl: MonoBehaviour, IPrintCompletedData
     {
-        private const string SceneNamePrefixLevel = "Level_";
-        private const string SceneNameMainMenu = "MainMenu";
-
         [SerializeField]
         private GameObject _gameEndCanvas;
 
         public static GameControl Instance { get; private set; }
-        public static string CurrentLevel { get; private set; } = SceneNameMainMenu;
-        public static float GameTime { get; private set; }
+
+        private const string SceneNamePrefixLevel = "Level_";
+        private const string SceneNameMainMenu = "MainMenu";
+
+        private SaveLoadDataControl _saveLoadDataControl;
+        private LevelData _currentLevelData;
+        private bool _gameIsRun = false;
 
         public GameEndEvent gameEndEvent = new GameEndEvent();
 
-        private bool _gameIsRun = false;
+        public int CurrentLevel { get; private set; }
+        public float GameTime { get; private set; }
 
         private void Awake ()
         {
@@ -36,6 +40,7 @@ namespace Control
                 DontDestroyOnLoad(gameObject);
                 Instance = this;
                 Instance.gameEndEvent.AddListener(OnGameEnd);
+                Instance._saveLoadDataControl = new SaveLoadDataControl();
             }
             else
             {
@@ -53,6 +58,11 @@ namespace Control
             return Time.timeScale == 0f;
         }
 
+        public List<LevelData> GetLevelData()
+        {
+            return _saveLoadDataControl.LevelData;
+        }
+
         public void PauseGame()
         {
             Instance._gameIsRun = false;
@@ -68,26 +78,37 @@ namespace Control
         public void LoadLevel(int level)
         {
             string levelName = SceneNamePrefixLevel + level;
-            CurrentLevel = levelName;
-            if (Application.CanStreamedLevelBeLoaded(levelName))
+            if (!Application.CanStreamedLevelBeLoaded(levelName))
+                return;
+
+            CurrentLevel = level;
+            GameTime = 0f;
+            Instance._gameIsRun = true;
+            UnpauseGame();
+
+            _currentLevelData = null;
+            int countCompletedLevels = _saveLoadDataControl.LevelData.Count;
+            if (countCompletedLevels != 0)
             {
-                GameTime = 0f;
-                Instance._gameIsRun = true;
-                UnpauseGame();
-                SceneManager.LoadScene(levelName);
+                if (level <= countCompletedLevels)
+                {
+                    _currentLevelData = _saveLoadDataControl.LevelData[level];
+                }
             }
+
+            SceneManager.LoadScene(levelName);
         }
 
         public void LoadMainMenu()
         {
-            if (Application.CanStreamedLevelBeLoaded(SceneNameMainMenu))
-            {
-                CurrentLevel = SceneNameMainMenu;
-                GameTime = 0f;
-                Instance._gameIsRun = false;
-                UnpauseGame();
-                SceneManager.LoadScene("MainMenu");
-            }
+            if (!Application.CanStreamedLevelBeLoaded(SceneNameMainMenu))
+                return;
+
+            GameTime = 0f;
+            Instance._gameIsRun = false;
+            UnpauseGame();
+
+            SceneManager.LoadScene(SceneNameMainMenu);
         }
 
         public void CloseGame()
@@ -111,41 +132,64 @@ namespace Control
             Transform messagePanel = null;
             if (gameStatus.Equals("Win"))
             {
-                messagePanel = gameEndCanvas.transform.Find("WinMessagePanel");
+                messagePanel = gameEndCanvas.transform.GetChild(1);
+                Transform completedDataPanel = messagePanel.GetChild(1);
 
-                TextMeshProUGUI timeText = messagePanel.Find("TimeText").GetComponent<TextMeshProUGUI>();
-                PrintTime(timeText);
+                TextMeshProUGUI timeText = completedDataPanel.GetChild(1).GetComponent<TextMeshProUGUI>();
+                PrintTime(timeText, GameTime);
 
-                Image[] scoreImages = messagePanel.Find("ScoreImages").GetComponentsInChildren<Image>();
-                PrintCompletionRate(scoreImages);
+                int score = UIScoreBar.Instance.Score;
+                int totalPossibleScore = UIScoreBar.TotalPossibleScore;
+                int completedScoreSections = GetCompletedSections(score, totalPossibleScore);
+                Image[] scoreImages = completedDataPanel.GetChild(0).GetComponentsInChildren<Image>();
+                PrintCompletionRate(scoreImages, completedScoreSections);
+
+                SaveLevelResult(completedScoreSections, GameTime);
             }
             else if (gameStatus.Equals("Loss"))
             {
-                messagePanel = gameEndCanvas.transform.Find("LossMessagePanel");
+                messagePanel = gameEndCanvas.transform.GetChild(2);
             }
             messagePanel.gameObject.SetActive(true);
 
             GameTime = 0f;
         }
 
-        private void PrintTime(in TextMeshProUGUI timeText)
+        private int GetCompletedSections(in int score, in int totalPossibleScore)
         {
-            float minutes = Mathf.FloorToInt(GameTime / 60); 
-            float seconds = Mathf.FloorToInt(GameTime % 60);
+            float completionRate = ((float) score / (float) totalPossibleScore) * 100f;
+            float oneSection = 100f / 3f;
+            return completionRate <= oneSection ? 1 :
+                completionRate > oneSection && completionRate <= oneSection * 2 ? 2 : 3;
+        }
+
+        public void PrintTime(in TextMeshProUGUI timeText, in float gameTime)
+        {
+            float minutes = Mathf.FloorToInt(gameTime / 60); 
+            float seconds = Mathf.FloorToInt(gameTime % 60);
             timeText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
         }
 
-        private void PrintCompletionRate(in Image[] scoreImages)
+        public void PrintCompletionRate(in Image[] scoreImages, in int completedScoreSections)
         {
-            int score = UIScoreBar.Instance.Score;
-            int totalPossibleScore = UIScoreBar.TotalPossibleScore;
-            float completionRate = ((float)score / (float)totalPossibleScore) * 100f;
-            int completedSections = completionRate <= 33.33f ? 1 :
-                completionRate > 33.33f && completionRate <= 66.66f ? 2 : 3;
-            for (int i = 0; i < completedSections; i++)
+            for (int i = 0; i < completedScoreSections; i++)
             {
                 Image section = scoreImages[i];
                 section.color = Color.white;
+            }
+        }
+
+        private void SaveLevelResult(in int completedScoreSections, in float completionTime)
+        {
+            int level = CurrentLevel;
+            LevelData levelData = new LevelData(level, completedScoreSections, completionTime);
+            if (_currentLevelData == null)
+            {
+                _saveLoadDataControl.SaveData(levelData);
+            }
+            else
+            {
+                _saveLoadDataControl.UpdateData(levelData, level);
             }
         }
 
@@ -156,8 +200,6 @@ namespace Control
                 GameTime += Time.deltaTime;
             }
         }
-
-         
 
     }
 

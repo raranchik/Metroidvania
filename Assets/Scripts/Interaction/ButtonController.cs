@@ -48,8 +48,8 @@ namespace Interaction
 
         private bool ThisObjectCanPress(in GameObject objInspected)
         {
-            string objTag = objInspected.tag;
-            return !objTag.Equals("Stone") || !objTag.Equals("Player");
+            string objName = objInspected.name;
+            return !objName.Contains("Stone") || !objName.Contains("Herochar");
         }
 
     }

@@ -1,4 +1,3 @@
-using System;
 using Control;
 using UnityEngine;
 
@@ -23,8 +22,8 @@ namespace Interaction.Checkpoint
         private void OnTriggerEnter2D(Collider2D col)
         {
             GameObject obj = col.gameObject;
-            string gameObjectTag = obj.tag;
-            if (gameObjectTag.Equals("Player"))
+            string gameObjectName = obj.name;
+            if (gameObjectName.Contains("Herochar"))
             {
                 CurrentState = InteractionStates.Enable;
             }

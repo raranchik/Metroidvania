@@ -36,7 +36,7 @@ namespace Interaction
         {
             GameObject collisionObject = col.gameObject;
             string objName = collisionObject.name;
-            if (!objName.Equals("Button"))
+            if (!objName.Contains("Button"))
                 return;
 
             Vector2 stonePosition = _transform.position;

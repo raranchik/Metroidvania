@@ -31,7 +31,7 @@ namespace Interaction.Checkpoint
 
         private void OnTriggerEnter2D(Collider2D col)
         {
-            if (col.tag.Equals("Player"))
+            if (col.name.Contains("Herochar"))
             {
                 CurrentState = InteractionStates.Enable;
                 _herochar = col.GetComponent<HerocharController>();

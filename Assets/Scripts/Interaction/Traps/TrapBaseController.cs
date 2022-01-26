@@ -9,8 +9,8 @@ namespace Interaction.Traps
         protected virtual void OnTriggerStay2D(Collider2D other)
         {
             GameObject obj = other.gameObject;
-            string gameObjectTag = obj.tag;
-            if (gameObjectTag.Equals("Player"))
+            string gameObjectName = obj.name;
+            if (gameObjectName.Contains("Herochar"))
             {
                 obj.GetComponent<HerocharController>().OnHit();
             }

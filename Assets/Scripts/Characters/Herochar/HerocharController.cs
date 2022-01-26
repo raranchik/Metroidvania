@@ -110,7 +110,7 @@ namespace Characters.Herochar
 
         private void OnCollisionStay2D(Collision2D other)
         {
-            if (other.gameObject.name.Equals("Stone"))
+            if (other.gameObject.name.Contains("Stone"))
             {
                 Bounds bounds = _capsuleCol.bounds;
                 Vector2 rayPoint = bounds.center;
@@ -122,7 +122,7 @@ namespace Characters.Herochar
 
         private void OnCollisionExit2D(Collision2D other)
         {
-            if (other.gameObject.name.Equals("Stone"))
+            if (other.gameObject.name.Contains("Stone"))
                 _isPushingForward = false;
         }
 
@@ -249,7 +249,7 @@ namespace Characters.Herochar
                 GameObject interactionObj = hit.collider.gameObject;
                 string objName = interactionObj.name;
                 Vector2 velocity = _rb.velocity;
-                if (objName.Equals("Stone")) AdjustVelocity(0f, velocity.y);
+                if (objName.Contains("Stone")) AdjustVelocity(0f, velocity.y);
             }
 
             _doDash = false;
@@ -265,7 +265,7 @@ namespace Characters.Herochar
             {
                 GameObject interactionObj = hit.collider.gameObject;
                 string objName = interactionObj.name;
-                if (objName.Equals("Lever"))
+                if (objName.Contains("Lever"))
                 {
                     LevelerController leverController = interactionObj.GetComponent<LevelerController>();
                     InteractionBaseController.InteractionStates leverState = leverController.CurrentState;
@@ -293,7 +293,7 @@ namespace Characters.Herochar
             {
                 GameObject interactionObj = hit.collider.gameObject;
                 string objName = interactionObj.name;
-                if (objName.Equals("Vase"))
+                if (objName.Contains("Vase"))
                 {
                     var vaseController = interactionObj.GetComponent<VaseController>();
                     vaseController.CurrentState = InteractionBaseController.InteractionStates.Enable;

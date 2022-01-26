@@ -14,8 +14,8 @@ namespace Interaction
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            string triggerObjTag = other.tag;
-            if (triggerObjTag.Equals("Player"))
+            string triggerObjName = other.name;
+            if (triggerObjName.Contains("Herochar"))
             {
                 CurrentState = InteractionStates.Enable;
                 UIScoreBar.Instance.SetBarValue();

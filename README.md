@@ -72,4 +72,4 @@
   * Rabbit.
 
 #### Preview.
-![](https://psv4.userapi.com/c537232/u176092139/docs/d22/2858fcccd66f/Metroidvania_prewiev.gif?extra=exqTee1djAwtLeh9OvSsKmBKdXv0OR_vnBqyXGrM6zXRj2tUn8dY4wpeeAw7fX1X4gd5ltNNIGt4AixXgs5YTL833XJDWgMHRcFJWxwjo9JD_UskCTlAZsHibHWN9d8T3gWjNXYt8uWiVkX6dtjKyA)
+[Ссылка на preview.](https://psv4.userapi.com/c537232/u176092139/docs/d22/2858fcccd66f/Metroidvania_prewiev.gif?extra=exqTee1djAwtLeh9OvSsKmBKdXv0OR_vnBqyXGrM6zXRj2tUn8dY4wpeeAw7fX1X4gd5ltNNIGt4AixXgs5YTL833XJDWgMHRcFJWxwjo9JD_UskCTlAZsLobHWN9d8T3gWjNXYl8LWoV0KgfYuZmw)

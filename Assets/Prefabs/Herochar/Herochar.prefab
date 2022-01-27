@@ -75,7 +75,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 50
   m_Sprite: {fileID: -4099418257374492983, guid: c79533412ac923643b056bd284b3d949, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -124,7 +124,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   _speed: 3.5
-  _jumpHeight: 5
+  _jumpHeight: 6.2
   _maxHealth: 3
   _timeImmortality: 1
   _dashPower: 60

@@ -276,7 +276,6 @@ namespace Characters.Herochar
                             : InteractionBaseController.InteractionStates.Disable;
 
                     leverController.CurrentState = newState;
-                    Debug.Log("1");
                 }
             }
 
